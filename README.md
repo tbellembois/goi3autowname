@@ -1,6 +1,6 @@
 # i3 workspace auto rename
 
-## i3 confiu
+## i3 config
 
 It is important to define workspace with numbers and no initial name in the i3 config file to keep the key binding to switch workspace.
 
