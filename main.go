@@ -1,8 +1,9 @@
 package main
 
 import (
+	"flag"
+	log "github.com/sirupsen/logrus"
 	"go.i3wm.org/i3"
-	"log"
 	"strconv"
 )
 
@@ -44,11 +45,28 @@ func renameworkspaces() {
 
 	for _, w := range ws {
 		n := strconv.Itoa(int(w.Num))
-		i3.RunCommand("rename workspace " + w.Name + " to " + n + ":" + m[w.Name])
+		newname := n
+		// creating a new workspace m[w.Name] is empty
+		if m[w.Name] != "" {
+			newname = n + ":" + m[w.Name]
+		}
+		log.WithFields(log.Fields{"n": n, "w.Name": w.Name, "newname": newname}).Debug("renameworkspaces")
+		i3.RunCommand("rename workspace " + w.Name + " to " + newname)
 	}
 }
 
 func main() {
+	// getting the program parameters
+	debug := flag.Bool("debug", false, "debug (verbose log), default is error")
+	flag.Parse()
+
+	// setting the log level
+	if *debug {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.ErrorLevel)
+	}
+
 	// initializing map
 	m = make(map[string]string)
 
@@ -69,6 +87,7 @@ func main() {
 			root = tree.Root
 
 			buildmap(root, nil)
+			log.WithFields(log.Fields{"m": m}).Debug("buildmap")
 			renameworkspaces()
 		}
 	}
