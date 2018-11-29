@@ -1,0 +1,12 @@
+{
+    "applications": [
+        {
+          "class" : "Code",
+          "name" : "vscode"
+          },
+        {
+          "class" : "XTerm",
+          "name" : "term"
+          }
+      ]
+}

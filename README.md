@@ -28,6 +28,7 @@ Drop the binary somewhere and add to you i3 config file:
 exec /path/to/my/goi3autowname
 ```
 
-## planned
+## run options
 
-Add a appclass<->name config file to display custom workspace names.
+`--debug`: debug mode
+`--mapf`: full path (with file name) to the `goi3autowname.json` file containing a `class`<>`name` mapping.

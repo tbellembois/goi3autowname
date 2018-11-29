@@ -1,33 +1,59 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"io/ioutil"
+	"os"
+	"strconv"
+
 	log "github.com/sirupsen/logrus"
 	"go.i3wm.org/i3"
-	"strconv"
 )
 
 var (
-	er   *i3.EventReceiver
-	tree i3.Tree
-	root *i3.Node
-	err  error
-	m    map[string]string // workspace map
+	er           *i3.EventReceiver
+	tree         i3.Tree
+	root         *i3.Node
+	err          error
+	jsonFile     *os.File          // mapping file
+	byteValue    []byte            // mapping file content
+	applications Applications      // unmarshalled mapping file
+	mm           map[string]string // app class<>name map
+	wm           map[string]string // workspace map
 )
+
+type Applications struct {
+	Applications []Application `json:"applications"`
+}
+
+type Application struct {
+	Class string `json:"class"`
+	Name  string `json:"name"`
+}
 
 func buildmap(n *i3.Node, w *i3.Node) {
 	for _, c := range n.Nodes {
 		switch c.Type {
 		case i3.Con, i3.FloatingCon:
-			class := c.WindowProperties.Class
+			class := string(c.WindowProperties.Class)
 			// w should never be nil
+			// mapping class<>name?
+			newname := class
+			if m, ok := mm[class]; ok {
+				newname = m
+			}
 			if w != nil {
-				m[w.Name] = m[w.Name] + "_" + string(class)
+				if wm[w.Name] == "" {
+					wm[w.Name] = newname
+				} else {
+					wm[w.Name] = wm[w.Name] + "_" + newname
+				}
 			}
 			buildmap(c, w)
 		case i3.WorkspaceNode:
 			if c.Name != "__i3_scratch" {
-				m[c.Name] = ""
+				wm[c.Name] = ""
 				buildmap(c, c)
 			}
 		default:
@@ -47,8 +73,8 @@ func renameworkspaces() {
 		n := strconv.Itoa(int(w.Num))
 		newname := n
 		// creating a new workspace m[w.Name] is empty
-		if m[w.Name] != "" {
-			newname = n + ":" + m[w.Name]
+		if wm[w.Name] != "" {
+			newname = n + ":" + wm[w.Name]
 		}
 		log.WithFields(log.Fields{"n": n, "w.Name": w.Name, "newname": newname}).Debug("renameworkspaces")
 		i3.RunCommand("rename workspace " + w.Name + " to " + newname)
@@ -57,18 +83,40 @@ func renameworkspaces() {
 
 func main() {
 	// getting the program parameters
-	debug := flag.Bool("debug", false, "debug (verbose log), default is error")
+	debug := flag.Bool("debug", false, "debug (verbose log), default is info")
+	mapf := flag.String("mapf", "./goi3autowname.json", "json map file full path")
 	flag.Parse()
+
+	// initializing maps
+	wm = make(map[string]string)
+	mm = make(map[string]string)
 
 	// setting the log level
 	if *debug {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.SetLevel(log.ErrorLevel)
+		log.SetLevel(log.InfoLevel)
 	}
 
-	// initializing map
-	m = make(map[string]string)
+	// opening the mapping file
+	if jsonFile, err = os.Open(*mapf); err != nil {
+		log.Info("no goi3autowname.json mapping file found, running with defaults")
+	}
+	defer jsonFile.Close()
+
+	// reading the mapping file
+	if byteValue, err = ioutil.ReadAll(jsonFile); err != nil {
+		log.Info("error reading mapping file, running with defaults - err:" + err.Error())
+	}
+	if err = json.Unmarshal(byteValue, &applications); err != nil {
+		log.Info("error unmarshalling mapping file, running with defaults - err:" + err.Error())
+	}
+
+	// loading the mapping into the map
+	for i := 0; i < len(applications.Applications); i++ {
+		log.Info(applications.Applications[i].Class + "->" + applications.Applications[i].Name)
+		mm[applications.Applications[i].Class] = applications.Applications[i].Name
+	}
 
 	// subscribing to window events
 	er = i3.Subscribe(i3.WindowEventType)
@@ -87,7 +135,7 @@ func main() {
 			root = tree.Root
 
 			buildmap(root, nil)
-			log.WithFields(log.Fields{"m": m}).Debug("buildmap")
+			log.WithFields(log.Fields{"wm": wm}).Debug("buildmap")
 			renameworkspaces()
 		}
 	}
