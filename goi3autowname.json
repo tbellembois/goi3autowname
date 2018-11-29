@@ -1,12 +1,24 @@
 {
-    "applications": [
-        {
-          "class" : "Code",
-          "name" : "vscode"
-          },
-        {
-          "class" : "XTerm",
-          "name" : "term"
-          }
-      ]
+"applications": [
+    {
+        "class" : "Code",
+        "name" : "vscode"
+    },
+    {
+    "class" : "Leafpad",
+    "name" : "leafpad"
+    },
+    {
+        "class" : "Gimp",
+        "name" : "gimp"
+    },
+    {
+        "class" : "XTerm",
+        "name" : "term"
+    },
+    {
+        "class" : "Evolution",
+        "name" : "mail"
+    }
+    ]
 }

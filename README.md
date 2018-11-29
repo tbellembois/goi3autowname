@@ -1,5 +1,9 @@
 # i3 workspace auto rename
 
+Automatically display the opened application names in the workspaces (using the i3 rename workspace feature).
+
+![screenshot](screenshot.png)
+
 ## i3 config
 
 It is important to define workspace with numbers and no initial name in the i3 config file to keep the key binding to switch workspace.
