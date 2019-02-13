@@ -71,6 +71,11 @@ func renameworkspaces() {
 
 	for _, w := range ws {
 		n := strconv.Itoa(int(w.Num))
+		// skip if using non numerical window names
+		if int(w.Num) < 0 {
+			log.Info("Non integer window ID found: " + n)
+			break
+		}
 		newname := n
 		// creating a new workspace m[w.Name] is empty
 		if wm[w.Name] != "" {
