@@ -44,10 +44,15 @@ func buildmap(n *i3.Node, w *i3.Node) {
 				newname = m
 			}
 			if w != nil {
+				log.WithFields(log.Fields{"n.ID": n.ID, "wm[w.Name]": wm[w.Name]}).Debug("buildmap")
 				if wm[w.Name] == "" {
 					wm[w.Name] = newname
 				} else {
-					wm[w.Name] = wm[w.Name] + "_" + newname
+					if newname != "" {
+						wm[w.Name] = wm[w.Name] + "_" + newname
+					} else {
+						wm[w.Name] = wm[w.Name]
+					}
 				}
 			}
 			buildmap(c, w)
@@ -73,7 +78,7 @@ func renameworkspaces() {
 		n := strconv.Itoa(int(w.Num))
 		// skip if using non numerical window names
 		if int(w.Num) < 0 {
-			log.Info("Non integer window ID found: " + n)
+			log.Info("non integer window ID found: " + n)
 			break
 		}
 		newname := n

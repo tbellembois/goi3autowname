@@ -36,3 +36,7 @@ exec /path/to/my/goi3autowname
 
 `--debug`: debug mode
 `--mapf`: full path (with file name) to the `goi3autowname.json` file containing a `class`<>`name` mapping.
+
+## mapping file
+
+The `goi3autowname.json` should be self explanatory. Note that you can use icon fonts such as <https://materialdesignicons.com/> using unicode points (example: `"\ufa1d"` in the sample file).
