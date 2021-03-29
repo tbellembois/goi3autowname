@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	"go.i3wm.org/i3"
+	"go.i3wm.org/i3/v4"
 )
 
 var (
@@ -47,7 +47,7 @@ func buildmap(n *i3.Node, w *i3.Node) {
 				if wm[w.Name] == "" {
 					wm[w.Name] = newname
 				} else {
-					wm[w.Name] = wm[w.Name] + "_" + newname
+					wm[w.Name] = wm[w.Name] + " " + newname
 				}
 			}
 			buildmap(c, w)
