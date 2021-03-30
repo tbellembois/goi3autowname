@@ -133,7 +133,7 @@ func main() {
 		ev := er.Event().(*i3.WindowEvent)
 
 		switch ev.Change {
-		case "new", "close":
+		case "new", "close", "title":
 			// getting i3 tree
 			if tree, err = i3.GetTree(); err != nil {
 				log.Fatal(err)
@@ -143,6 +143,8 @@ func main() {
 			buildmap(root, nil)
 			log.WithFields(log.Fields{"wm": wm}).Debug("buildmap")
 			renameworkspaces()
+		default:
+			log.WithFields(log.Fields{"ev.Change": ev.Change}).Debug("ev.Change")
 		}
 	}
 	log.Fatal(er.Close())
