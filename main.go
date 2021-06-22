@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -83,7 +84,9 @@ func renameworkspaces() {
 			newname = n + ":" + wm[w.Name]
 		}
 		log.WithFields(log.Fields{"n": n, "w.Name": w.Name, "newname": newname}).Debug("renameworkspaces")
-		i3.RunCommand("rename workspace " + w.Name + " to " + newname)
+		if _, err := i3.RunCommand(fmt.Sprintf(`rename workspace "%s" to "%s"`, w.Name , newname)); err != nil {
+			log.WithFields(log.Fields{"n":n, "err":err}).Debug("rename failed")
+		}
 	}
 }
 
