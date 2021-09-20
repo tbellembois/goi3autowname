@@ -51,9 +51,7 @@ func buildmap(n *i3.Node, w *i3.Node) {
 				if wm[w.Name] == "" {
 					wm[w.Name] = newname
 				} else {
-					if newname != "" {
-						wm[w.Name] = wm[w.Name] + "_" + newname
-					}
+					wm[w.Name] = wm[w.Name] + " " + newname
 				}
 			}
 			buildmap(c, w)
@@ -88,7 +86,9 @@ func renameworkspaces() {
 			newname = n + ":" + wm[w.Name]
 		}
 		log.WithFields(log.Fields{"n": n, "w.Name": w.Name, "newname": newname}).Debug("renameworkspaces")
-		i3.RunCommand("rename workspace " + w.Name + " to " + newname)
+		if _, err := i3.RunCommand(fmt.Sprintf(`rename workspace "%s" to "%s"`, w.Name, newname)); err != nil {
+			log.WithFields(log.Fields{"n": n, "err": err}).Debug("rename failed")
+		}
 	}
 }
 
@@ -138,7 +138,7 @@ func main() {
 		ev := er.Event().(*i3.WindowEvent)
 
 		switch ev.Change {
-		case "new", "close":
+		case "new", "close", "title":
 			// getting i3 tree
 			if tree, err = i3.GetTree(); err != nil {
 				log.Fatal(err)
@@ -148,6 +148,8 @@ func main() {
 			buildmap(root, nil)
 			log.WithFields(log.Fields{"wm": wm}).Debug("buildmap")
 			renameworkspaces()
+		default:
+			log.WithFields(log.Fields{"ev.Change": ev.Change}).Debug("ev.Change")
 		}
 	}
 	log.Fatal(er.Close())
