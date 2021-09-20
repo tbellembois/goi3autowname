@@ -2,23 +2,23 @@
 "applications": [
     {
         "class" : "Code",
-        "name" : "\ufa1d"
+        "title" : "\ufa1d"
     },
     {
-    "class" : "Leafpad",
-    "name" : "leafpad"
+        "class" : "Leafpad",
+        "title" : "leafpad"
     },
     {
         "class" : "Gimp",
-        "name" : "gimp"
+        "title" : "gimp"
     },
     {
-        "class" : "XTerm",
-        "name" : "term"
+        "class" : "URxvt",
+        "title" : "term"
     },
     {
         "class" : "Evolution",
-        "name" : "mail"
+        "title" : "mail"
     }
     ]
 }

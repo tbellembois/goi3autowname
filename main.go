@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	"go.i3wm.org/i3"
+	"go.i3wm.org/i3/v4"
 )
 
 var (
@@ -29,13 +30,15 @@ type Applications struct {
 
 type Application struct {
 	Class string `json:"class"`
-	Name  string `json:"name"`
+	Title string `json:"title"`
 }
 
 func buildmap(n *i3.Node, w *i3.Node) {
 	for _, c := range n.Nodes {
 		switch c.Type {
 		case i3.Con, i3.FloatingCon:
+			log.WithFields(log.Fields{"c": fmt.Sprintf("%+v", c)}).Debug("buildmap")
+
 			class := string(c.WindowProperties.Class)
 			// w should never be nil
 			// mapping class<>name?
@@ -50,8 +53,6 @@ func buildmap(n *i3.Node, w *i3.Node) {
 				} else {
 					if newname != "" {
 						wm[w.Name] = wm[w.Name] + "_" + newname
-					} else {
-						wm[w.Name] = wm[w.Name]
 					}
 				}
 			}
@@ -124,8 +125,8 @@ func main() {
 
 	// loading the mapping into the map
 	for i := 0; i < len(applications.Applications); i++ {
-		log.Info(applications.Applications[i].Class + "->" + applications.Applications[i].Name)
-		mm[applications.Applications[i].Class] = applications.Applications[i].Name
+		log.Info(applications.Applications[i].Class + "->" + applications.Applications[i].Title)
+		mm[applications.Applications[i].Class] = applications.Applications[i].Title
 	}
 
 	// subscribing to window events
