@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -13,15 +14,16 @@ import (
 )
 
 var (
-	er           *i3.EventReceiver
-	tree         i3.Tree
-	root         *i3.Node
-	err          error
-	jsonFile     *os.File          // mapping file
-	byteValue    []byte            // mapping file content
-	applications Applications      // unmarshalled mapping file
-	mm           map[string]string // app class<>name map
-	wm           map[string]string // workspace map
+	er                          *i3.EventReceiver
+	tree                        i3.Tree
+	root                        *i3.Node
+	err                         error
+	orphanClasses               map[string]string
+	jsonFile, orphanClassesFile *os.File          // mapping file, orphan classes file
+	byteValue                   []byte            // mapping file content
+	applications                Applications      // unmarshalled mapping file
+	mm                          map[string]string // app class<>name map
+	wm                          map[string]string // workspace map
 )
 
 type Applications struct {
@@ -45,6 +47,11 @@ func buildmap(n *i3.Node, w *i3.Node) {
 			newname := class
 			if m, ok := mm[class]; ok {
 				newname = m
+			} else {
+				if _, ok := orphanClasses[class]; !ok {
+					orphanClasses[class] = ""
+					orphanClassesFile.WriteString(fmt.Sprintf("%s\n", class))
+				}
 			}
 			if w != nil {
 				log.WithFields(log.Fields{"n.ID": n.ID, "wm[w.Name]": wm[w.Name]}).Debug("buildmap")
@@ -101,6 +108,7 @@ func main() {
 	// initializing maps
 	wm = make(map[string]string)
 	mm = make(map[string]string)
+	orphanClasses = make(map[string]string)
 
 	// setting the log level
 	if *debug {
@@ -108,6 +116,14 @@ func main() {
 	} else {
 		log.SetLevel(log.InfoLevel)
 	}
+
+	// creating the orphan classes file
+	// ie. applications not present in the mapping file
+	// below but open by the user
+	if orphanClassesFile, err = os.Create(path.Join(os.TempDir(), "goi3autorename-orphans.txt")); err != nil {
+		log.Fatal(err)
+	}
+	defer orphanClassesFile.Close()
 
 	// opening the mapping file
 	if jsonFile, err = os.Open(*mapf); err != nil {
